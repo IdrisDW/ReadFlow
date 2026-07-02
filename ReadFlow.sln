@@ -15,6 +15,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadFlow.Infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadFlow.Tests", "src\ReadFlow.Tests\ReadFlow.Tests.csproj", "{8362A85D-011F-489F-93C0-E982FA846D7C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		api-walkthrough.md = api-walkthrough.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,5 +100,8 @@ Global
 		{05C92F17-4841-4C4E-8E20-89CAC80ECDDE} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{DB641059-8F79-4EED-BEEE-30982EE64801} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{8362A85D-011F-489F-93C0-E982FA846D7C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {19322288-B31A-4748-A4A4-903E20483882}
 	EndGlobalSection
 EndGlobal
