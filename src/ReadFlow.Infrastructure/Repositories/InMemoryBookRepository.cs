@@ -11,7 +11,9 @@ public class InMemoryBookRepository : IBookRepository
         {
             Id = 1,
             Title = "The Metamorphosis",
-            Author = "Franz Kafka",
+            AuthorName = "Franz Kafka",
+            Genre = "Fiction",
+            Isbn = "9780553213690",
             Year = 1915,
             IsActive = true
         },
@@ -19,30 +21,55 @@ public class InMemoryBookRepository : IBookRepository
         {
             Id = 2,
             Title = "Aura",
-            Author = "Carlos Fuentes",
+            AuthorName = "Carlos Fuentes",
+            Genre = "Fiction",
+            Isbn = "9786073131417",
             Year = 1962,
             IsActive = true
         },
         new Book
         {
             Id = 3,
-            Title = "Ficciones",
-            Author = "Jorge Luis Borges",
-            Year = 1944,
+            Title = "The Stranger",
+            AuthorName = "Albert Camus",
+            Genre = "Fiction",
+            Isbn = "9780679720201",
+            Year = 1942,
             IsActive = true
-        },
-        new Book
-        {
-            Id = 4,
-            Title = "Deleted Example",
-            Author = "Unknown",
-            Year = 2000,
-            IsActive = false
         }
     };
 
-    public IEnumerable<Book> GetAll()
+    public List<Book> GetAll()
     {
-        return _books;
+        return _books
+            .Where(book => book.IsActive)
+            .ToList();
+    }
+
+    public Book? GetById(int id)
+    {
+        return _books
+            .FirstOrDefault(book => book.Id == id && book.IsActive);
+    }
+
+    public Book Create(Book book)
+    {
+        book.Id = _books.Any()
+            ? _books.Max(book => book.Id) + 1
+            : 1;
+
+        book.IsActive = true;
+
+        _books.Add(book);
+
+        return book;
+    }
+
+    public bool ExistsByIsbn(string isbn)
+    {
+        return _books.Any(book =>
+            book.IsActive &&
+            book.Isbn != null &&
+            book.Isbn == isbn);
     }
 }

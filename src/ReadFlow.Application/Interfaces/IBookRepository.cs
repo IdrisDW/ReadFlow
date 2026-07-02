@@ -4,5 +4,8 @@ namespace ReadFlow.Application.Interfaces;
 
 public interface IBookRepository
 {
-    IEnumerable<Book> GetAll();
+    List<Book> GetAll();
+    Book? GetById(int id);
+    Book Create(Book book);
+    bool ExistsByIsbn(string isbn);
 }

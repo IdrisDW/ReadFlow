@@ -1,12 +1,10 @@
-namespace ReadFlow.Domain.Entities;
+namespace ReadFlow.Api.DTOs;
 
-public class Book
+public class CreateBookRequest
 {
-    public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
     public string Genre { get; set; } = string.Empty;
     public string? Isbn { get; set; }
     public int? Year { get; set; }
-    public bool IsActive { get; set; } = true;
 }
