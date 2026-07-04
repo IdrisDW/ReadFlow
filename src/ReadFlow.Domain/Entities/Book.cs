@@ -1,3 +1,5 @@
+using ReadFlow.Domain.Enums;
+
 namespace ReadFlow.Domain.Entities;
 
 public class Book
@@ -9,4 +11,8 @@ public class Book
     public string? Isbn { get; set; }
     public int? Year { get; set; }
     public bool IsActive { get; set; } = true;
+
+    public ReadingStatus Status { get; set; } = ReadingStatus.WantToRead;
+
+
 }

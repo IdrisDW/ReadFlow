@@ -5,71 +5,41 @@ namespace ReadFlow.Infrastructure.Repositories;
 
 public class InMemoryBookRepository : IBookRepository
 {
-    private readonly List<Book> _books = new()
-    {
-        new Book
-        {
-            Id = 1,
-            Title = "The Metamorphosis",
-            AuthorName = "Franz Kafka",
-            Genre = "Fiction",
-            Isbn = "9780553213690",
-            Year = 1915,
-            IsActive = true
-        },
-        new Book
-        {
-            Id = 2,
-            Title = "Aura",
-            AuthorName = "Carlos Fuentes",
-            Genre = "Fiction",
-            Isbn = "9786073131417",
-            Year = 1962,
-            IsActive = true
-        },
-        new Book
-        {
-            Id = 3,
-            Title = "The Stranger",
-            AuthorName = "Albert Camus",
-            Genre = "Fiction",
-            Isbn = "9780679720201",
-            Year = 1942,
-            IsActive = true
-        }
-    };
+    private readonly List<Book> _books = new();
+    private int _nextId = 1;
 
     public List<Book> GetAll()
     {
-        return _books
-            .Where(book => book.IsActive)
-            .ToList();
+        return _books;
     }
 
     public Book? GetById(int id)
     {
-        return _books
-            .FirstOrDefault(book => book.Id == id && book.IsActive);
+        return _books.FirstOrDefault(book => book.Id == id);
     }
 
     public Book Create(Book book)
     {
-        book.Id = _books.Any()
-            ? _books.Max(book => book.Id) + 1
-            : 1;
-
-        book.IsActive = true;
-
+        book.Id = _nextId++;
         _books.Add(book);
 
         return book;
     }
 
-    public bool ExistsByIsbn(string isbn)
+    public Book? Update(Book book)
     {
-        return _books.Any(book =>
-            book.IsActive &&
-            book.Isbn != null &&
-            book.Isbn == isbn);
+        var existingBook = _books.FirstOrDefault(existing => existing.Id == book.Id);
+
+        if (existingBook is null)
+        {
+            return null;
+        }
+
+        existingBook.Title = book.Title;
+        existingBook.AuthorName = book.AuthorName;
+        existingBook.Year = book.Year;
+        existingBook.Status = book.Status;
+
+        return existingBook;
     }
 }
