@@ -1,12 +1,14 @@
 {
   "profiles": {
-    "ReadFlow.Api": {
+    "https": {
       "commandName": "Project",
+      "dotnetRunMessages": true,
       "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7005;http://localhost:5005",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "https://localhost:49552;http://localhost:49553"
+      }
     }
   }
 }

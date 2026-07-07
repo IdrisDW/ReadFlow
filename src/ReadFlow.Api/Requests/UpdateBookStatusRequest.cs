@@ -1,9 +1,6 @@
-﻿using ReadFlow.Domain.Enums;
+namespace ReadFlow.Api.Requests;
 
-namespace ReadFlow.Api.Requests
+public class UpdateBookStatusRequest
 {
-    public class UpdateBookStatusRequest
-    {
-        public ReadingStatus NewStatus { get; set; }
-    }
+    public string Status { get; set; } = string.Empty;
 }

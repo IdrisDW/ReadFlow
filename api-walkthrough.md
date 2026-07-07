@@ -172,3 +172,11 @@ The repository handles data access.
 The DTO controls what the API exposes.
 
 The interfaces reduce coupling between layers.
+I added reading notes as a separate entity because a book can have many notes.
+The ReadingNote table stores the note content and the BookId, which connects each note to its book.
+
+I used a one-to-many relationship: one book can have multiple reading notes, but each reading note belongs to only one book.
+
+For SQL joins, an INNER JOIN returns only matching records from both tables. In this project, it would return only books that have notes. A LEFT JOIN returns all books, even if some of them do not have notes.
+
+I also used aliases like `b` for Books and `n` for ReadingNotes to make the SQL query easier to read.

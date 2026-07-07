@@ -1,4 +1,4 @@
-﻿namespace ReadFlow.Domain.Enums;
+namespace ReadFlow.Domain.Enums;
 
 public enum ReadingStatus
 {

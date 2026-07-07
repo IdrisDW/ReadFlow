@@ -1,45 +1,63 @@
 using ReadFlow.Application.Interfaces;
 using ReadFlow.Domain.Entities;
+using ReadFlow.Domain.Enums;
 
 namespace ReadFlow.Infrastructure.Repositories;
 
 public class InMemoryBookRepository : IBookRepository
 {
-    private readonly List<Book> _books = new();
-    private int _nextId = 1;
-
-    public List<Book> GetAll()
+    private readonly List<Book> _books = new()
     {
-        return _books;
+        new Book
+        {
+            Id = 1,
+            Title = "The Metamorphosis",
+            Author = "Franz Kafka",
+            Year = 1915,
+            Status = ReadingStatus.Finished,
+            IsActive = true
+        },
+        new Book
+        {
+            Id = 2,
+            Title = "The Stranger",
+            Author = "Albert Camus",
+            Year = 1942,
+            Status = ReadingStatus.Reading,
+            IsActive = true
+        },
+        new Book
+        {
+            Id = 3,
+            Title = "Chronicle of a Death Foretold",
+            Author = "Gabriel García Márquez",
+            Year = 1981,
+            Status = ReadingStatus.WantToRead,
+            IsActive = true
+        }
+    };
+
+    public Task<List<Book>> GetAllAsync()
+    {
+        return Task.FromResult(_books);
     }
 
-    public Book? GetById(int id)
+    public Task<Book?> GetByIdAsync(int id)
     {
-        return _books.FirstOrDefault(book => book.Id == id);
+        var book = _books.FirstOrDefault(b => b.Id == id);
+        return Task.FromResult(book);
     }
 
-    public Book Create(Book book)
+    public Task AddAsync(Book book)
     {
-        book.Id = _nextId++;
+        book.Id = _books.Max(b => b.Id) + 1;
         _books.Add(book);
 
-        return book;
+        return Task.CompletedTask;
     }
 
-    public Book? Update(Book book)
+    public Task SaveChangesAsync()
     {
-        var existingBook = _books.FirstOrDefault(existing => existing.Id == book.Id);
-
-        if (existingBook is null)
-        {
-            return null;
-        }
-
-        existingBook.Title = book.Title;
-        existingBook.AuthorName = book.AuthorName;
-        existingBook.Year = book.Year;
-        existingBook.Status = book.Status;
-
-        return existingBook;
+        return Task.CompletedTask;
     }
 }

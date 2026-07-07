@@ -5,44 +5,108 @@ using ReadFlow.Application.Interfaces;
 namespace ReadFlow.Api.Controllers;
 
 [ApiController]
-[Route("api/books")]
+[Route("api/[controller]")]
 public class BooksController : ControllerBase
 {
-    private readonly IBookRepository _bookRepository;
-    private readonly IReadingStatusTransitionValidator _statusTransitionValidator;
+    private readonly IBookService _bookService;
+    private readonly IReadingNoteService _readingNoteService;
 
     public BooksController(
-        IBookRepository bookRepository,
-        IReadingStatusTransitionValidator statusTransitionValidator)
+        IBookService bookService,
+        IReadingNoteService readingNoteService)
     {
-        _bookRepository = bookRepository;
-        _statusTransitionValidator = statusTransitionValidator;
+        _bookService = bookService;
+        _readingNoteService = readingNoteService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetBooks()
+    {
+        var books = await _bookService.GetAllAsync();
+        return Ok(books);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetBookById(int id)
+    {
+        var book = await _bookService.GetByIdAsync(id);
+
+        if (book == null)
+        {
+            return NotFound("Book not found.");
+        }
+
+        return Ok(book);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateBook(CreateBookRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            return BadRequest("Title is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Author))
+        {
+            return BadRequest("Author is required.");
+        }
+
+        var book = await _bookService.CreateAsync(request.Title, request.Author, request.Year);
+
+        return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
     }
 
     [HttpPatch("{id}/status")]
-    public IActionResult UpdateStatus(int id, UpdateBookStatusRequest request)
+    public async Task<IActionResult> UpdateBookStatus(int id, UpdateBookStatusRequest request)
     {
-        var book = _bookRepository.GetById(id);
-
-        if (book is null)
+        try
         {
-            return NotFound();
+            var book = await _bookService.UpdateStatusAsync(id, request.Status);
+
+            if (book == null)
+            {
+                return NotFound("Book not found.");
+            }
+
+            return Ok(book);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("{id}/notes")]
+    public async Task<IActionResult> GetNotes(int id)
+    {
+        var notes = await _readingNoteService.GetByBookIdAsync(id);
+
+        if (notes == null)
+        {
+            return NotFound("Book not found.");
         }
 
-        var isTransitionAllowed = _statusTransitionValidator.CanTransition(
-            book.Status,
-            request.NewStatus
-        );
+        return Ok(notes);
+    }
 
-        if (!isTransitionAllowed)
+    [HttpPost("{id}/notes")]
+    public async Task<IActionResult> CreateNote(int id, CreateReadingNoteRequest request)
+    {
+        try
         {
-            return BadRequest($"Cannot change status from {book.Status} to {request.NewStatus}.");
+            var note = await _readingNoteService.CreateAsync(id, request.Content);
+
+            if (note == null)
+            {
+                return NotFound("Book not found.");
+            }
+
+            return CreatedAtAction(nameof(GetNotes), new { id = id }, note);
         }
-
-        book.Status = request.NewStatus;
-
-        var updatedBook = _bookRepository.Update(book);
-
-        return Ok(updatedBook);
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

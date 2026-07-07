@@ -4,11 +4,11 @@ namespace ReadFlow.Application.Interfaces;
 
 public interface IBookRepository
 {
-    List<Book> GetAll();
+    Task<List<Book>> GetAllAsync();
 
-    Book? GetById(int id);
+    Task<Book?> GetByIdAsync(int id);
 
-    Book Create(Book book);
+    Task AddAsync(Book book);
 
-    Book? Update(Book book);
+    Task SaveChangesAsync();
 }
