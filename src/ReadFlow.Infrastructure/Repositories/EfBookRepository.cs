@@ -17,6 +17,8 @@ public class EfBookRepository : IBookRepository
     public async Task<List<Book>> GetAllAsync()
     {
         return await _context.Books
+            .Include(b => b.ReadingNotes)
+            .Where(b => b.IsActive)
             .OrderBy(b => b.Id)
             .ToListAsync();
     }
@@ -24,7 +26,8 @@ public class EfBookRepository : IBookRepository
     public async Task<Book?> GetByIdAsync(int id)
     {
         return await _context.Books
-            .FirstOrDefaultAsync(b => b.Id == id);
+            .Include(b => b.ReadingNotes)
+            .FirstOrDefaultAsync(b => b.Id == id && b.IsActive);
     }
 
     public async Task AddAsync(Book book)
