@@ -1,5 +1,5 @@
 using ReadFlow.Application.DTOs;
-using ReadFlow.Domain.Enums;
+using ReadFlow.Application.Requests;
 
 namespace ReadFlow.Application.Interfaces;
 
@@ -9,13 +9,15 @@ public interface IBookService
 
     Task<BookDto?> GetByIdAsync(int id);
 
-    Task<BookDto> CreateAsync(string title, string author);
+    Task<BookDto> CreateAsync(CreateBookRequest request);
 
-    Task<BookDto?> UpdateStatusAsync(int id, ReadingStatus newStatus);
+    Task<BookDto?> UpdateStatusAsync(int id, UpdateBookStatusRequest request);
 
-    Task<ReadingNoteDto?> AddNoteAsync(int bookId, string content);
+    Task<BookDto?> UpdateRatingAsync(int id, UpdateBookRatingRequest request);
+
+    Task<ReadingNoteDto?> AddNoteAsync(int bookId, CreateReadingNoteRequest request);
 
     Task<List<ReadingNoteDto>?> GetNotesAsync(int bookId);
 
-    Task<BookDto?> UpdateRatingAsync(int id, int? rating);
+    Task<List<ReadingStatusHistoryDto>?> GetStatusHistoryAsync(int bookId);
 }

@@ -1,5 +1,6 @@
 using ReadFlow.Application.DTOs;
 using ReadFlow.Application.Interfaces;
+using ReadFlow.Application.Requests;
 using ReadFlow.Domain.Entities;
 using ReadFlow.Domain.Enums;
 
@@ -20,7 +21,7 @@ public class BookService : IBookService
 
     public async Task<List<BookDto>> GetAllAsync()
     {
-        var books = await _bookRepository.GetAllAsync();
+        List<Book> books = await _bookRepository.GetAllAsync();
 
         return books
             .Select(MapToDto)
@@ -29,9 +30,9 @@ public class BookService : IBookService
 
     public async Task<BookDto?> GetByIdAsync(int id)
     {
-        var book = await _bookRepository.GetByIdAsync(id);
+        Book? book = await _bookRepository.GetByIdAsync(id);
 
-        if (book == null)
+        if (book is null)
         {
             return null;
         }
@@ -39,26 +40,31 @@ public class BookService : IBookService
         return MapToDto(book);
     }
 
-    public async Task<BookDto> CreateAsync(string title, string author)
+    public async Task<BookDto> CreateAsync(CreateBookRequest request)
     {
-        if (string.IsNullOrWhiteSpace(title))
+        if (string.IsNullOrWhiteSpace(request.Title))
         {
             throw new ArgumentException("Title is required.");
         }
 
-        if (string.IsNullOrWhiteSpace(author))
+        if (string.IsNullOrWhiteSpace(request.Author))
         {
             throw new ArgumentException("Author is required.");
         }
 
-        var book = new Book
+        if (string.IsNullOrWhiteSpace(request.Genre))
         {
-            Title = title.Trim(),
-            Author = author.Trim(),
-            Status = ReadingStatus.WantToRead,
+            throw new ArgumentException("Genre is required.");
+        }
+
+        Book book = new()
+        {
+            Title = request.Title.Trim(),
+            Author = request.Author.Trim(),
+            Genre = request.Genre.Trim(),
+            Status = request.Status,
             Rating = null,
-            IsActive = true,
-            ReadingNotes = new List<ReadingNote>()
+            IsActive = true
         };
 
         await _bookRepository.AddAsync(book);
@@ -67,52 +73,84 @@ public class BookService : IBookService
         return MapToDto(book);
     }
 
-    public async Task<BookDto?> UpdateStatusAsync(int id, ReadingStatus newStatus)
+    public async Task<BookDto?> UpdateStatusAsync(int id, UpdateBookStatusRequest request)
     {
-        var book = await _bookRepository.GetByIdAsync(id);
+        Book? book = await _bookRepository.GetByIdAsync(id);
 
-        if (book == null)
+        if (book is null)
         {
             return null;
         }
 
-        var canTransition = _statusValidator.CanTransition(book.Status, newStatus);
+        ReadingStatus oldStatus = book.Status;
+        ReadingStatus newStatus = request.Status;
+
+        bool canTransition = _statusValidator.CanTransition(oldStatus, newStatus);
 
         if (!canTransition)
         {
-            throw new ArgumentException($"Cannot change status from {book.Status} to {newStatus}.");
+            throw new ArgumentException($"Cannot change status from {oldStatus} to {newStatus}.");
         }
 
         book.Status = newStatus;
+
+        ReadingStatusHistory history = new()
+        {
+            BookId = book.Id,
+            OldStatus = oldStatus,
+            NewStatus = newStatus,
+            ChangedAt = DateTime.UtcNow
+        };
+
+        await _bookRepository.AddStatusHistoryAsync(history);
+        await _bookRepository.SaveChangesAsync();
+
+        return MapToDto(book);
+    }
+
+    public async Task<BookDto?> UpdateRatingAsync(int id, UpdateBookRatingRequest request)
+    {
+        if (request.Rating.HasValue && (request.Rating < 1 || request.Rating > 5))
+        {
+            throw new ArgumentException("Rating must be between 1 and 5.");
+        }
+
+        Book? book = await _bookRepository.GetByIdAsync(id);
+
+        if (book is null)
+        {
+            return null;
+        }
+
+        book.Rating = request.Rating;
 
         await _bookRepository.SaveChangesAsync();
 
         return MapToDto(book);
     }
 
-    public async Task<ReadingNoteDto?> AddNoteAsync(int bookId, string content)
+    public async Task<ReadingNoteDto?> AddNoteAsync(int bookId, CreateReadingNoteRequest request)
     {
-        if (string.IsNullOrWhiteSpace(content))
+        if (string.IsNullOrWhiteSpace(request.Content))
         {
             throw new ArgumentException("Note content is required.");
         }
 
-        var book = await _bookRepository.GetByIdAsync(bookId);
+        Book? book = await _bookRepository.GetByIdAsync(bookId);
 
-        if (book == null)
+        if (book is null)
         {
             return null;
         }
 
-        var note = new ReadingNote
+        ReadingNote note = new()
         {
             BookId = book.Id,
-            Content = content.Trim(),
+            Content = request.Content.Trim(),
             CreatedAt = DateTime.UtcNow
         };
 
-        book.ReadingNotes.Add(note);
-
+        await _bookRepository.AddNoteAsync(note);
         await _bookRepository.SaveChangesAsync();
 
         return MapToNoteDto(note);
@@ -120,37 +158,34 @@ public class BookService : IBookService
 
     public async Task<List<ReadingNoteDto>?> GetNotesAsync(int bookId)
     {
-        var book = await _bookRepository.GetByIdAsync(bookId);
+        Book? book = await _bookRepository.GetByIdAsync(bookId);
 
-        if (book == null)
+        if (book is null)
         {
             return null;
         }
 
-        return book.ReadingNotes
+        List<ReadingNote> notes = await _bookRepository.GetNotesAsync(bookId);
+
+        return notes
             .Select(MapToNoteDto)
             .ToList();
     }
 
-    public async Task<BookDto?> UpdateRatingAsync(int id, int? rating)
+    public async Task<List<ReadingStatusHistoryDto>?> GetStatusHistoryAsync(int bookId)
     {
-        if (rating.HasValue && (rating < 1 || rating > 5))
-        {
-            throw new ArgumentException("Rating must be between 1 and 5.");
-        }
+        Book? book = await _bookRepository.GetByIdAsync(bookId);
 
-        var book = await _bookRepository.GetByIdAsync(id);
-
-        if (book == null)
+        if (book is null)
         {
             return null;
         }
 
-        book.Rating = rating;
+        List<ReadingStatusHistory> history = await _bookRepository.GetStatusHistoryAsync(bookId);
 
-        await _bookRepository.SaveChangesAsync();
-
-        return MapToDto(book);
+        return history
+            .Select(MapToStatusHistoryDto)
+            .ToList();
     }
 
     private static BookDto MapToDto(Book book)
@@ -160,7 +195,8 @@ public class BookService : IBookService
             Id = book.Id,
             Title = book.Title,
             Author = book.Author,
-            Status = book.Status,
+            Genre = book.Genre,
+            Status = book.Status.ToString(),
             Rating = book.Rating
         };
     }
@@ -173,6 +209,18 @@ public class BookService : IBookService
             BookId = note.BookId,
             Content = note.Content,
             CreatedAt = note.CreatedAt
+        };
+    }
+
+    private static ReadingStatusHistoryDto MapToStatusHistoryDto(ReadingStatusHistory history)
+    {
+        return new ReadingStatusHistoryDto
+        {
+            Id = history.Id,
+            BookId = history.BookId,
+            OldStatus = history.OldStatus.ToString(),
+            NewStatus = history.NewStatus.ToString(),
+            ChangedAt = history.ChangedAt
         };
     }
 }

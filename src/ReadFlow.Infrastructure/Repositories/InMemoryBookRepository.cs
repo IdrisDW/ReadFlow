@@ -7,16 +7,19 @@ namespace ReadFlow.Infrastructure.Repositories;
 public class InMemoryBookRepository : IBookRepository
 {
     private readonly List<Book> _books = new();
+    private readonly List<ReadingStatusHistory> _statusHistory = new();
     private int _nextBookId = 1;
     private int _nextNoteId = 1;
+    private int _nextStatusHistoryId = 1;
 
     public InMemoryBookRepository()
     {
-        _books.Add(new Book
+        Book kafka = new()
         {
             Id = _nextBookId++,
             Title = "The Metamorphosis",
             Author = "Franz Kafka",
+            Genre = "Fiction",
             Status = ReadingStatus.Finished,
             Rating = 5,
             IsActive = true,
@@ -30,23 +33,27 @@ public class InMemoryBookRepository : IBookRepository
                     CreatedAt = DateTime.UtcNow
                 }
             }
-        });
+        };
 
-        _books.Add(new Book
+        Book camus = new()
         {
             Id = _nextBookId++,
             Title = "The Stranger",
             Author = "Albert Camus",
+            Genre = "Fiction",
             Status = ReadingStatus.Reading,
             Rating = null,
             IsActive = true,
             ReadingNotes = new List<ReadingNote>()
-        });
+        };
+
+        _books.Add(kafka);
+        _books.Add(camus);
     }
 
     public Task<List<Book>> GetAllAsync()
     {
-        var activeBooks = _books
+        List<Book> activeBooks = _books
             .Where(book => book.IsActive)
             .ToList();
 
@@ -55,7 +62,7 @@ public class InMemoryBookRepository : IBookRepository
 
     public Task<Book?> GetByIdAsync(int id)
     {
-        var book = _books
+        Book? book = _books
             .FirstOrDefault(book => book.Id == id && book.IsActive);
 
         return Task.FromResult(book);
@@ -66,7 +73,7 @@ public class InMemoryBookRepository : IBookRepository
         book.Id = _nextBookId++;
         book.IsActive = true;
 
-        foreach (var note in book.ReadingNotes)
+        foreach (ReadingNote note in book.ReadingNotes)
         {
             note.Id = _nextNoteId++;
             note.BookId = book.Id;
@@ -77,18 +84,58 @@ public class InMemoryBookRepository : IBookRepository
         return Task.CompletedTask;
     }
 
-    public Task SaveChangesAsync()
+    public Task AddNoteAsync(ReadingNote note)
     {
-        foreach (var book in _books)
+        note.Id = _nextNoteId++;
+
+        Book? book = _books.FirstOrDefault(book => book.Id == note.BookId && book.IsActive);
+
+        if (book is not null)
         {
-            foreach (var note in book.ReadingNotes.Where(note => note.Id == 0))
-            {
-                note.Id = _nextNoteId++;
-                note.BookId = book.Id;
-                note.CreatedAt = DateTime.UtcNow;
-            }
+            book.ReadingNotes.Add(note);
         }
 
+        return Task.CompletedTask;
+    }
+
+    public Task<List<ReadingNote>> GetNotesAsync(int bookId)
+    {
+        Book? book = _books.FirstOrDefault(book => book.Id == bookId && book.IsActive);
+
+        List<ReadingNote> notes = book?.ReadingNotes
+            .OrderByDescending(note => note.CreatedAt)
+            .ToList() ?? new List<ReadingNote>();
+
+        return Task.FromResult(notes);
+    }
+
+    public Task AddStatusHistoryAsync(ReadingStatusHistory history)
+    {
+        history.Id = _nextStatusHistoryId++;
+        _statusHistory.Add(history);
+
+        Book? book = _books.FirstOrDefault(book => book.Id == history.BookId && book.IsActive);
+
+        if (book is not null)
+        {
+            book.StatusHistory.Add(history);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<List<ReadingStatusHistory>> GetStatusHistoryAsync(int bookId)
+    {
+        List<ReadingStatusHistory> history = _statusHistory
+            .Where(item => item.BookId == bookId)
+            .OrderByDescending(item => item.ChangedAt)
+            .ToList();
+
+        return Task.FromResult(history);
+    }
+
+    public Task SaveChangesAsync()
+    {
         return Task.CompletedTask;
     }
 }

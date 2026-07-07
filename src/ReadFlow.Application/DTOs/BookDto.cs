@@ -1,5 +1,3 @@
-using ReadFlow.Domain.Enums;
-
 namespace ReadFlow.Application.DTOs;
 
 public class BookDto
@@ -10,7 +8,9 @@ public class BookDto
 
     public string Author { get; set; } = string.Empty;
 
-    public ReadingStatus Status { get; set; }
+    public string Genre { get; set; } = string.Empty;
+
+    public string Status { get; set; } = string.Empty;
 
     public int? Rating { get; set; }
 }

@@ -1,6 +1,6 @@
 using ReadFlow.Domain.Enums;
 
-namespace ReadFlow.Api.Requests;
+namespace ReadFlow.Application.Requests;
 
 public class UpdateBookStatusRequest
 {

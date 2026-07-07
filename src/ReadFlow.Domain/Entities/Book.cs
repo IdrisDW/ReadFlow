@@ -10,11 +10,15 @@ public class Book
 
     public string Author { get; set; } = string.Empty;
 
+    public string Genre { get; set; } = string.Empty;
+
     public ReadingStatus Status { get; set; } = ReadingStatus.WantToRead;
 
     public int? Rating { get; set; }
 
     public bool IsActive { get; set; } = true;
 
-    public List<ReadingNote> ReadingNotes { get; set; } = new();
+    public ICollection<ReadingNote> ReadingNotes { get; set; } = new List<ReadingNote>();
+
+    public ICollection<ReadingStatusHistory> StatusHistory { get; set; } = new List<ReadingStatusHistory>();
 }

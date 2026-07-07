@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using ReadFlow.Api.Requests;
 using ReadFlow.Application.Interfaces;
+using ReadFlow.Application.Requests;
 
 namespace ReadFlow.Api.Controllers;
 
@@ -23,12 +23,12 @@ public class BooksController : ControllerBase
         return Ok(books);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
         var book = await _bookService.GetByIdAsync(id);
 
-        if (book == null)
+        if (book is null)
         {
             return NotFound();
         }
@@ -41,7 +41,7 @@ public class BooksController : ControllerBase
     {
         try
         {
-            var book = await _bookService.CreateAsync(request.Title, request.Author);
+            var book = await _bookService.CreateAsync(request);
 
             return CreatedAtAction(
                 nameof(GetById),
@@ -54,14 +54,14 @@ public class BooksController : ControllerBase
         }
     }
 
-    [HttpPatch("{id}/status")]
+    [HttpPatch("{id:int}/status")]
     public async Task<IActionResult> UpdateStatus(int id, UpdateBookStatusRequest request)
     {
         try
         {
-            var book = await _bookService.UpdateStatusAsync(id, request.Status);
+            var book = await _bookService.UpdateStatusAsync(id, request);
 
-            if (book == null)
+            if (book is null)
             {
                 return NotFound();
             }
@@ -74,12 +74,25 @@ public class BooksController : ControllerBase
         }
     }
 
-    [HttpGet("{id}/notes")]
+    [HttpGet("{id:int}/status-history")]
+    public async Task<IActionResult> GetStatusHistory(int id)
+    {
+        var history = await _bookService.GetStatusHistoryAsync(id);
+
+        if (history is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(history);
+    }
+
+    [HttpGet("{id:int}/notes")]
     public async Task<IActionResult> GetNotes(int id)
     {
         var notes = await _bookService.GetNotesAsync(id);
 
-        if (notes == null)
+        if (notes is null)
         {
             return NotFound();
         }
@@ -87,14 +100,14 @@ public class BooksController : ControllerBase
         return Ok(notes);
     }
 
-    [HttpPost("{id}/notes")]
+    [HttpPost("{id:int}/notes")]
     public async Task<IActionResult> AddNote(int id, CreateReadingNoteRequest request)
     {
         try
         {
-            var note = await _bookService.AddNoteAsync(id, request.Content);
+            var note = await _bookService.AddNoteAsync(id, request);
 
-            if (note == null)
+            if (note is null)
             {
                 return NotFound();
             }
@@ -107,14 +120,14 @@ public class BooksController : ControllerBase
         }
     }
 
-    [HttpPatch("{id}/rating")]
+    [HttpPatch("{id:int}/rating")]
     public async Task<IActionResult> UpdateRating(int id, UpdateBookRatingRequest request)
     {
         try
         {
-            var book = await _bookService.UpdateRatingAsync(id, request.Rating);
+            var book = await _bookService.UpdateRatingAsync(id, request);
 
-            if (book == null)
+            if (book is null)
             {
                 return NotFound();
             }
