@@ -10,9 +10,9 @@ public class Book
 
     public string Author { get; set; } = string.Empty;
 
-    public int Year { get; set; }
-
     public ReadingStatus Status { get; set; } = ReadingStatus.WantToRead;
+
+    public int? Rating { get; set; }
 
     public bool IsActive { get; set; } = true;
 

@@ -11,14 +11,12 @@ public class ReadingStatusTransitionValidator : IReadingStatusTransitionValidato
         {
             ReadingStatus.WantToRead => newStatus == ReadingStatus.Reading,
 
-            ReadingStatus.Reading =>
-                newStatus == ReadingStatus.Finished ||
-                newStatus == ReadingStatus.Paused ||
-                newStatus == ReadingStatus.DNF,
+            ReadingStatus.Reading => newStatus == ReadingStatus.Finished
+                                    || newStatus == ReadingStatus.Paused
+                                    || newStatus == ReadingStatus.DNF,
 
-            ReadingStatus.Paused =>
-                newStatus == ReadingStatus.Reading ||
-                newStatus == ReadingStatus.DNF,
+            ReadingStatus.Paused => newStatus == ReadingStatus.Reading
+                                    || newStatus == ReadingStatus.DNF,
 
             ReadingStatus.Finished => false,
 

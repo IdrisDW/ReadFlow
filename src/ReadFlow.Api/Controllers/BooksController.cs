@@ -5,60 +5,57 @@ using ReadFlow.Application.Interfaces;
 namespace ReadFlow.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/books")]
 public class BooksController : ControllerBase
 {
     private readonly IBookService _bookService;
-    private readonly IReadingNoteService _readingNoteService;
 
-    public BooksController(
-        IBookService bookService,
-        IReadingNoteService readingNoteService)
+    public BooksController(IBookService bookService)
     {
         _bookService = bookService;
-        _readingNoteService = readingNoteService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetBooks()
+    public async Task<IActionResult> GetAll()
     {
         var books = await _bookService.GetAllAsync();
+
         return Ok(books);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetBookById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
         var book = await _bookService.GetByIdAsync(id);
 
         if (book == null)
         {
-            return NotFound("Book not found.");
+            return NotFound();
         }
 
         return Ok(book);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateBook(CreateBookRequest request)
+    public async Task<IActionResult> Create(CreateBookRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Title))
+        try
         {
-            return BadRequest("Title is required.");
-        }
+            var book = await _bookService.CreateAsync(request.Title, request.Author);
 
-        if (string.IsNullOrWhiteSpace(request.Author))
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = book.Id },
+                book);
+        }
+        catch (ArgumentException ex)
         {
-            return BadRequest("Author is required.");
+            return BadRequest(ex.Message);
         }
-
-        var book = await _bookService.CreateAsync(request.Title, request.Author, request.Year);
-
-        return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
     }
 
     [HttpPatch("{id}/status")]
-    public async Task<IActionResult> UpdateBookStatus(int id, UpdateBookStatusRequest request)
+    public async Task<IActionResult> UpdateStatus(int id, UpdateBookStatusRequest request)
     {
         try
         {
@@ -66,7 +63,7 @@ public class BooksController : ControllerBase
 
             if (book == null)
             {
-                return NotFound("Book not found.");
+                return NotFound();
             }
 
             return Ok(book);
@@ -80,29 +77,49 @@ public class BooksController : ControllerBase
     [HttpGet("{id}/notes")]
     public async Task<IActionResult> GetNotes(int id)
     {
-        var notes = await _readingNoteService.GetByBookIdAsync(id);
+        var notes = await _bookService.GetNotesAsync(id);
 
         if (notes == null)
         {
-            return NotFound("Book not found.");
+            return NotFound();
         }
 
         return Ok(notes);
     }
 
     [HttpPost("{id}/notes")]
-    public async Task<IActionResult> CreateNote(int id, CreateReadingNoteRequest request)
+    public async Task<IActionResult> AddNote(int id, CreateReadingNoteRequest request)
     {
         try
         {
-            var note = await _readingNoteService.CreateAsync(id, request.Content);
+            var note = await _bookService.AddNoteAsync(id, request.Content);
 
             if (note == null)
             {
-                return NotFound("Book not found.");
+                return NotFound();
             }
 
-            return CreatedAtAction(nameof(GetNotes), new { id = id }, note);
+            return Ok(note);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPatch("{id}/rating")]
+    public async Task<IActionResult> UpdateRating(int id, UpdateBookRatingRequest request)
+    {
+        try
+        {
+            var book = await _bookService.UpdateRatingAsync(id, request.Rating);
+
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(book);
         }
         catch (ArgumentException ex)
         {
