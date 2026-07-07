@@ -1,0 +1,37 @@
+CREATE TABLE Books
+(
+    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    Title NVARCHAR(200) NOT NULL,
+    Author NVARCHAR(200) NOT NULL,
+    Genre NVARCHAR(100) NOT NULL,
+    Status NVARCHAR(30) NOT NULL,
+    Rating INT NULL,
+    IsActive BIT NOT NULL DEFAULT 1
+);
+
+CREATE TABLE ReadingNotes
+(
+    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    BookId INT NOT NULL,
+    Content NVARCHAR(1000) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL,
+
+    CONSTRAINT FK_ReadingNotes_Books_BookId
+        FOREIGN KEY (BookId)
+        REFERENCES Books(Id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE ReadingStatusHistory
+(
+    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    BookId INT NOT NULL,
+    OldStatus NVARCHAR(30) NOT NULL,
+    NewStatus NVARCHAR(30) NOT NULL,
+    ChangedAt DATETIME2 NOT NULL,
+
+    CONSTRAINT FK_ReadingStatusHistory_Books_BookId
+        FOREIGN KEY (BookId)
+        REFERENCES Books(Id)
+        ON DELETE CASCADE
+);
