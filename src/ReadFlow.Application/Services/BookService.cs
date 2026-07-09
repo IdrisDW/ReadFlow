@@ -3,6 +3,7 @@ using ReadFlow.Application.Interfaces;
 using ReadFlow.Application.Requests;
 using ReadFlow.Domain.Entities;
 using ReadFlow.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace ReadFlow.Application.Services;
 
@@ -10,13 +11,16 @@ public class BookService : IBookService
 {
     private readonly IBookRepository _bookRepository;
     private readonly IReadingStatusTransitionValidator _statusValidator;
+    private readonly ILogger<BookService> _logger;
 
     public BookService(
         IBookRepository bookRepository,
-        IReadingStatusTransitionValidator statusValidator)
+        IReadingStatusTransitionValidator statusValidator,
+        ILogger<BookService> logger)
     {
         _bookRepository = bookRepository;
         _statusValidator = statusValidator;
+        _logger = logger;
     }
 
     public async Task<List<BookDto>> GetAllAsync()
@@ -75,20 +79,35 @@ public class BookService : IBookService
 
     public async Task<BookDto?> UpdateStatusAsync(int id, UpdateBookStatusRequest request)
     {
+        _logger.LogInformation("Trying to update status for book {BookId}", id);
+
         Book? book = await _bookRepository.GetByIdAsync(id);
 
         if (book is null)
         {
+            _logger.LogWarning("Book {BookId} was not found", id);
             return null;
         }
 
         ReadingStatus oldStatus = book.Status;
         ReadingStatus newStatus = request.Status;
 
+        _logger.LogInformation(
+            "Book {BookId} status transition requested: {OldStatus} -> {NewStatus}",
+            id,
+            oldStatus,
+            newStatus);
+
         bool canTransition = _statusValidator.CanTransition(oldStatus, newStatus);
 
         if (!canTransition)
         {
+            _logger.LogWarning(
+                "Invalid status transition for book {BookId}: {OldStatus} -> {NewStatus}",
+                id,
+                oldStatus,
+                newStatus);
+
             throw new ArgumentException($"Cannot change status from {oldStatus} to {newStatus}.");
         }
 
@@ -105,9 +124,13 @@ public class BookService : IBookService
         await _bookRepository.AddStatusHistoryAsync(history);
         await _bookRepository.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Book {BookId} status updated successfully to {NewStatus}",
+            id,
+            newStatus);
+
         return MapToDto(book);
     }
-
     public async Task<BookDto?> UpdateRatingAsync(int id, UpdateBookRatingRequest request)
     {
         if (request.Rating.HasValue && (request.Rating < 1 || request.Rating > 5))

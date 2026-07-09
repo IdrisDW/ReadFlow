@@ -27,3 +27,16 @@ These tests protect the BookService from breaking important business rules.
 The status transition tests are important because not every status change should be allowed.
 
 The validation tests are important because invalid input should fail in a clear and predictable way.
+
+---
+
+# Día 10 — Error handling + logging + debugging
+
+## What I debugged
+
+I debugged an invalid book status transition.
+
+Example:
+
+```txt
+WantToRead -> Finished

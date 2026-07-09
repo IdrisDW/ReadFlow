@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ReadFlow.Application.Interfaces;
 using ReadFlow.Application.Requests;
-
+using ReadFlow.Api.Responses;
 namespace ReadFlow.Api.Controllers;
 
 [ApiController]
@@ -13,6 +13,15 @@ public class BooksController : ControllerBase
     public BooksController(IBookService bookService)
     {
         _bookService = bookService;
+    }
+
+    private static ErrorResponse CreateErrorResponse(string message, int statusCode)
+    {
+        return new ErrorResponse
+        {
+            Message = message,
+            StatusCode = statusCode
+        };
     }
 
     [HttpGet]
@@ -30,7 +39,7 @@ public class BooksController : ControllerBase
 
         if (book is null)
         {
-            return NotFound();
+            return NotFound(CreateErrorResponse("Book not found", 404));
         }
 
         return Ok(book);
@@ -50,7 +59,11 @@ public class BooksController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(CreateErrorResponse(ex.Message, 400));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, CreateErrorResponse("Unexpected error", 500));
         }
     }
 
@@ -63,14 +76,18 @@ public class BooksController : ControllerBase
 
             if (book is null)
             {
-                return NotFound();
+                return NotFound(CreateErrorResponse("Book not found", 404));
             }
 
             return Ok(book);
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(CreateErrorResponse(ex.Message, 400));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, CreateErrorResponse("Unexpected error", 500));
         }
     }
 
@@ -81,7 +98,7 @@ public class BooksController : ControllerBase
 
         if (history is null)
         {
-            return NotFound();
+            return NotFound(CreateErrorResponse("Book not found", 404));
         }
 
         return Ok(history);
@@ -94,7 +111,7 @@ public class BooksController : ControllerBase
 
         if (notes is null)
         {
-            return NotFound();
+            return NotFound(CreateErrorResponse("Book not found", 404));
         }
 
         return Ok(notes);
@@ -109,14 +126,18 @@ public class BooksController : ControllerBase
 
             if (note is null)
             {
-                return NotFound();
+                return NotFound(CreateErrorResponse("Book not found", 404));
             }
 
             return Ok(note);
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(CreateErrorResponse(ex.Message, 400));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, CreateErrorResponse("Unexpected error", 500));
         }
     }
 
@@ -129,14 +150,18 @@ public class BooksController : ControllerBase
 
             if (book is null)
             {
-                return NotFound();
+                return NotFound(CreateErrorResponse("Book not found", 404));
             }
 
             return Ok(book);
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(CreateErrorResponse(ex.Message, 400));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, CreateErrorResponse("Unexpected error", 500));
         }
     }
 }
