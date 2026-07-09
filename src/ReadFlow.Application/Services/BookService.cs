@@ -31,7 +31,33 @@ public class BookService : IBookService
             .Select(MapToDto)
             .ToList();
     }
+    public async Task<ReadingSummaryDto> GetReadingSummaryAsync()
+    {
+        List<Book> books = await _bookRepository.GetAllAsync();
 
+        return new ReadingSummaryDto
+        {
+            TotalBooks = books.Count,
+
+            CurrentlyReading = books.Count(book => book.Status == ReadingStatus.Reading),
+
+            FinishedBooks = books.Count(book => book.Status == ReadingStatus.Finished),
+
+            WantToReadBooks = books.Count(book => book.Status == ReadingStatus.WantToRead),
+
+            DnfBooks = books.Count(book => book.Status == ReadingStatus.DNF),
+
+            BooksByGenre = books
+                .GroupBy(book => book.Genre)
+                .Select(group => new GenreCountDto
+                {
+                    Genre = group.Key,
+                    Count = group.Count()
+                })
+                .OrderBy(item => item.Genre)
+                .ToList()
+        };
+    }
     public async Task<BookDto?> GetByIdAsync(int id)
     {
         Book? book = await _bookRepository.GetByIdAsync(id);
@@ -244,6 +270,28 @@ public class BookService : IBookService
             OldStatus = history.OldStatus.ToString(),
             NewStatus = history.NewStatus.ToString(),
             ChangedAt = history.ChangedAt
+        };
+    }
+
+    public async Task<PagedResult<BookDto>> GetPagedAsync(BookQueryParameters queryParameters)
+    {
+        int totalCount = await _bookRepository.CountAsync();
+
+        List<Book> books = await _bookRepository.GetPagedAsync(
+            queryParameters.PageNumber,
+            queryParameters.PageSize);
+
+        return new PagedResult<BookDto>
+        {
+            Items = books
+                .Select(MapToDto)
+                .ToList(),
+
+            PageNumber = queryParameters.PageNumber,
+
+            PageSize = queryParameters.PageSize,
+
+            TotalCount = totalCount
         };
     }
 }

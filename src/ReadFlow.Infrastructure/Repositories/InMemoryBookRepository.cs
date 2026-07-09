@@ -138,4 +138,24 @@ public class InMemoryBookRepository : IBookRepository
     {
         return Task.CompletedTask;
     }
+
+    public Task<int> CountAsync()
+    {
+        int count = _books.Count(book => book.IsActive);
+
+        return Task.FromResult(count);
+    }
+
+    public Task<List<Book>> GetPagedAsync(int pageNumber, int pageSize)
+    {
+        List<Book> books = _books
+            .Where(book => book.IsActive)
+            .OrderBy(book => book.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return Task.FromResult(books);
+    }
+
 }

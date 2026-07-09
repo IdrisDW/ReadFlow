@@ -19,4 +19,7 @@ public interface IBookRepository
     Task<List<ReadingStatusHistory>> GetStatusHistoryAsync(int bookId);
 
     Task SaveChangesAsync();
+    Task<int> CountAsync();
+
+    Task<List<Book>> GetPagedAsync(int pageNumber, int pageSize);
 }

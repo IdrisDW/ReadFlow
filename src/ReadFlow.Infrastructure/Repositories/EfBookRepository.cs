@@ -23,7 +23,13 @@ public class EfBookRepository : IBookRepository
             .OrderBy(b => b.Id)
             .ToListAsync();
     }
+    public async Task<int> CountAsync()
+    {
+        return await _context.Books
+            .CountAsync(book => book.IsActive);
+    }
 
+   
     public async Task<Book?> GetByIdAsync(int id)
     {
         return await _context.Books
@@ -67,4 +73,16 @@ public class EfBookRepository : IBookRepository
     {
         await _context.SaveChangesAsync();
     }
+   
+
+    public async Task<List<Book>> GetPagedAsync(int pageNumber, int pageSize)
+    {
+        return await _context.Books
+            .Where(book => book.IsActive)
+            .OrderBy(book => book.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
 }

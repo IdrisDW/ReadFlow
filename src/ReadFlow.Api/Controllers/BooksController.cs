@@ -25,11 +25,11 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] BookQueryParameters queryParameters)
     {
-        var books = await _bookService.GetAllAsync();
+        var result = await _bookService.GetPagedAsync(queryParameters);
 
-        return Ok(books);
+        return Ok(result);
     }
 
     [HttpGet("{id:int}")]
@@ -163,5 +163,7 @@ public class BooksController : ControllerBase
         {
             return StatusCode(500, CreateErrorResponse("Unexpected error", 500));
         }
+      
     }
+
 }

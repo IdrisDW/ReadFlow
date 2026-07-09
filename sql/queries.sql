@@ -41,3 +41,62 @@ INNER JOIN ReadingStatusHistory h
     ON b.Id = h.BookId
 WHERE b.Id = 1
 ORDER BY h.ChangedAt DESC;
+
+
+-- Books by author
+SELECT 
+    Author,
+    COUNT(*) AS TotalBooks
+FROM Books
+WHERE IsActive = 1
+GROUP BY Author
+HAVING COUNT(*) > 2;
+
+
+-- Reading summary
+SELECT 
+    COUNT(*) AS TotalBooks,
+    SUM(CASE WHEN Status = 'Reading' THEN 1 ELSE 0 END) AS CurrentlyReading,
+    SUM(CASE WHEN Status = 'Finished' THEN 1 ELSE 0 END) AS FinishedBooks,
+    SUM(CASE WHEN Status = 'WantToRead' THEN 1 ELSE 0 END) AS WantToReadBooks,
+    SUM(CASE WHEN Status = 'DNF' THEN 1 ELSE 0 END) AS DnfBooks
+FROM Books
+WHERE IsActive = 1;
+
+
+-- Books by genre
+SELECT 
+    Genre,
+    COUNT(*) AS Count
+FROM Books
+WHERE IsActive = 1
+GROUP BY Genre
+ORDER BY Genre;
+
+
+-- Pagination example: page 1, pageSize 5
+SELECT 
+    Id,
+    Title,
+    Author,
+    Genre,
+    Status,
+    Rating
+FROM Books
+WHERE IsActive = 1
+ORDER BY Id
+OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;
+
+
+-- Pagination example: page 2, pageSize 5
+SELECT 
+    Id,
+    Title,
+    Author,
+    Genre,
+    Status,
+    Rating
+FROM Books
+WHERE IsActive = 1
+ORDER BY Id
+OFFSET 5 ROWS FETCH NEXT 5 ROWS ONLY;

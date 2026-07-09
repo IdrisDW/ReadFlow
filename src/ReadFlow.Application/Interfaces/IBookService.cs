@@ -7,6 +7,10 @@ public interface IBookService
 {
     Task<List<BookDto>> GetAllAsync();
 
+    Task<PagedResult<BookDto>> GetPagedAsync(BookQueryParameters queryParameters);
+
+    Task<ReadingSummaryDto> GetReadingSummaryAsync();
+
     Task<BookDto?> GetByIdAsync(int id);
 
     Task<BookDto> CreateAsync(CreateBookRequest request);

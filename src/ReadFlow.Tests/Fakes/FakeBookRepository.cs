@@ -92,4 +92,19 @@ public class FakeBookRepository : IBookRepository
 
         _books.Add(book);
     }
+    public Task<int> CountAsync()
+    {
+        return Task.FromResult(_books.Count);
+    }
+
+    public Task<List<Book>> GetPagedAsync(int pageNumber, int pageSize)
+    {
+        var books = _books
+            .OrderBy(book => book.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return Task.FromResult(books);
+    }
 }
